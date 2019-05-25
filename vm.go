@@ -81,7 +81,7 @@ type StepResult struct {
 	Failed  []*Thread
 }
 
-func (v *VM) PrepareToFeed(thread *Thread) {
+func (v *VM) prepareToFeed(thread *Thread) {
 	for {
 
 		// implicit return
@@ -172,7 +172,7 @@ func (v *VM) PrepareToFeed(thread *Thread) {
 
 		case OpReturn:
 			if len(thread.Stack) > 0 {
-				v.UnwindStack(thread)
+				v.unwindStack(thread)
 			} else {
 				thread.PC = nil
 				return // no more frames
@@ -187,7 +187,7 @@ func (v *VM) PrepareToFeed(thread *Thread) {
 
 }
 
-func (v *VM) UnwindStack(thread *Thread) {
+func (v *VM) unwindStack(thread *Thread) {
 	frame := thread.Stack[len(thread.Stack)-1]
 	thread.PC = frame.Return
 	thread.Stack = thread.Stack[:len(thread.Stack)-1]
@@ -223,7 +223,7 @@ func (v *VM) Step(input rune) (
 ) {
 
 	for i := 0; i < len(v.Threads); i++ {
-		v.PrepareToFeed(v.Threads[i])
+		v.prepareToFeed(v.Threads[i])
 	}
 
 	for _, thread := range v.Threads {
@@ -270,7 +270,7 @@ func (v *VM) Step(input rune) (
 	v.step++
 
 	for i := 0; i < len(v.Threads); i++ {
-		v.PrepareToFeed(v.Threads[i])
+		v.prepareToFeed(v.Threads[i])
 	}
 
 	// purge stopped threads
@@ -294,7 +294,7 @@ func (v *VM) Step(input rune) (
 
 func (v *VM) kill(t *Thread) {
 	for len(t.Stack) > 0 {
-		v.UnwindStack(t)
+		v.unwindStack(t)
 	}
 	t.PC = nil
 	t.Match = false
