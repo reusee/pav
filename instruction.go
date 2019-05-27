@@ -158,3 +158,9 @@ func RuneCategory(category string) *Instruction {
 		Category: category,
 	}
 }
+
+func RunePredict(predict *Instruction, cont *Instruction) *Instruction {
+	predict.Predict = true
+	predict.Inst = cont
+	return predict
+}

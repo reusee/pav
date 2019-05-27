@@ -44,7 +44,7 @@ type Instruction struct {
 	ClusterID   int64
 	ClusterType ClusterType
 
-	// OpJump, OpCall
+	// OpJump, OpCall, OpRune(Predict=true)
 	Inst *Instruction
 
 	// OpClone
@@ -56,6 +56,7 @@ type Instruction struct {
 	RuneRange [2]rune
 	Category  string
 	Inverse   bool
+	Predict   bool
 
 	// OpIndirect
 	InstP **Instruction
@@ -234,6 +235,7 @@ func (v *VM) Step(input rune) (
 	}
 
 	for _, thread := range v.Threads {
+	feed:
 		// feed rune
 		if thread.PC != nil {
 			if thread.PC.Op != OpRune { // NOCOVER
@@ -266,7 +268,13 @@ func (v *VM) Step(input rune) (
 			}
 
 			if thread.Match {
-				thread.PC = thread.PC.Next
+				if thread.PC.Predict {
+					thread.PC = thread.PC.Inst
+					v.prepareToFeed(thread)
+					goto feed
+				} else {
+					thread.PC = thread.PC.Next
+				}
 			} else {
 				v.kill(thread)
 			}

@@ -142,7 +142,7 @@ func (_ GoLexer) OperatorAndPunctuation() *Instruction {
 }
 
 func (_ GoLexer) Literal() *Instruction {
-	return First(
+	return Longest(
 		Named("IntegerLiteral"),
 		Named("FloatLiteral"),
 		Named("ImaginaryLiteral"),
@@ -152,7 +152,7 @@ func (_ GoLexer) Literal() *Instruction {
 }
 
 func (_ GoLexer) IntegerLiteral() *Instruction {
-	return First(
+	return Longest(
 		Named("DecimalLiteral"),
 		Named("OctalLiteral"),
 		Named("HexLiteral"),
@@ -210,7 +210,7 @@ func (_ GoLexer) ImaginaryLiteral() *Instruction {
 func (_ GoLexer) RuneLiteral() *Instruction {
 	return Seq(
 		Literal(`'`),
-		First(
+		Longest(
 			Named("UnicodeValue"),
 			Named("ByteValue"),
 		),
@@ -228,13 +228,32 @@ func (_ GoLexer) StringLiteral() *Instruction {
 func (_ GoLexer) RawStringLiteral() *Instruction {
 	return Seq(
 		Literal("`"),
-		ZeroOrMore(
-			First(
-				Named("UnicodeChar"),
-				Rune('\n'),
+		RunePredict(
+			RuneInverse(Rune('`')),
+			ZeroOrMore(
+				First(
+					Named("UnicodeChar"),
+					Rune('\n'),
+				),
 			),
 		),
 		Literal("`"),
+	)
+}
+
+func (_ GoLexer) InterpretedStringLiteral() *Instruction {
+	return Seq(
+		Rune('"'),
+		ZeroOrMore(
+			RunePredict(
+				RuneInverse(Rune('"')),
+				Longest(
+					Named("UnicodeValue"),
+					Named("ByteValue"),
+				),
+			),
+		),
+		Rune('"'),
 	)
 }
 
@@ -258,19 +277,6 @@ func (_ GoLexer) HexLiteral() *Instruction {
 		ZeroOrMore(
 			Named("HexDigit"),
 		),
-	)
-}
-
-func (_ GoLexer) InterpretedStringLiteral() *Instruction {
-	return Seq(
-		Rune('"'),
-		ZeroOrMore(
-			Longest(
-				Named("UnicodeValue"),
-				Named("ByteValue"),
-			),
-		),
-		Rune('"'),
 	)
 }
 

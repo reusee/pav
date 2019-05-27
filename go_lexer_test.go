@@ -30,7 +30,7 @@ func TestGoLexer(t *testing.T) {
 		pt("%s\n", path)
 		vm := NewVMFromObject(new(GoLexer), Named("Program"))
 		for i, r := range runes {
-			//pt("%d %d\n", i, len(vm.Threads))
+			pt("%d %d\n", i, len(vm.Threads))
 			res := vm.Step(r)
 			if i == len(runes)-1 {
 				if len(res.Matched) != 1 {
