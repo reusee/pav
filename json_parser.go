@@ -1,32 +1,6 @@
-package parser
-
-import "reflect"
+package pav
 
 type JSONParser struct{}
-
-func NewJSONParserVM(initInst *Instruction) *VM {
-	o := new(JSONParser)
-	v := reflect.ValueOf(o)
-	t := reflect.TypeOf(o)
-	vm := &VM{
-		Routines: make(map[string]Routine),
-	}
-	for i := 0; i < v.NumMethod(); i++ {
-		fn := v.Method(i).Interface()
-		if fn, ok := fn.(func() *Instruction); ok {
-			name := t.Method(i).Name
-			vm.Routines[name] = Routine{
-				Start: fn(),
-			}
-		}
-	}
-	vm.Threads = []*Thread{
-		{
-			PC: initInst,
-		},
-	}
-	return vm
-}
 
 func (_ JSONParser) Lexical(str string) *Instruction {
 	return Seq(
@@ -102,7 +76,7 @@ func (j JSONParser) String() *Instruction {
 		j.Lexical(`"`),
 		ZeroOrMore(
 			Longest(
-				Inverse(
+				RuneInverse(
 					RuneSet('"', '\\'),
 				),
 				Literal(`\"`),

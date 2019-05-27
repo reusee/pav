@@ -1,7 +1,9 @@
-package parser
+package pav
 
 import (
 	"fmt"
+	"reflect"
+	"unicode"
 )
 
 type VM struct {
@@ -52,6 +54,7 @@ type Instruction struct {
 	Rune      rune
 	Runes     []rune
 	RuneRange [2]rune
+	Category  string
 	Inverse   bool
 
 	// OpIndirect
@@ -129,7 +132,11 @@ func (v *VM) prepareToFeed(thread *Thread) {
 			if thread.PC.Inst != nil {
 				thread.PC = thread.PC.Inst
 			} else if thread.PC.Name != "" {
-				thread.PC = v.Routines[thread.PC.Name].Start
+				r, ok := v.Routines[thread.PC.Name]
+				if !ok {
+					panic(fmt.Errorf("no such name: %s", thread.PC.Name))
+				}
+				thread.PC = r.Start
 			} else { // NOCOVER
 				panic(fmt.Errorf("bad instruction: %+v", thread.PC))
 			}
@@ -248,6 +255,8 @@ func (v *VM) Step(input rune) (
 				// rune range
 				thread.Match = input >= inst.RuneRange[0] &&
 					input <= inst.RuneRange[1]
+			} else if inst.Category != "" {
+				thread.Match = unicode.Is(unicode.Categories[inst.Category], input)
 			} else {
 				// single rune
 				thread.Match = input == inst.Rune
@@ -306,4 +315,27 @@ func (v *VM) dumpThreads() { // NOCOVER
 		pt("%+v\n", thread.PC)
 	}
 	pt("---- ----\n") // NOCOVER
+}
+
+func NewVMFromObject(obj interface{}, initInst *Instruction) *VM {
+	v := reflect.ValueOf(obj)
+	t := reflect.TypeOf(obj)
+	vm := &VM{
+		Routines: make(map[string]Routine),
+	}
+	for i := 0; i < v.NumMethod(); i++ {
+		fn := v.Method(i).Interface()
+		if fn, ok := fn.(func() *Instruction); ok {
+			name := t.Method(i).Name
+			vm.Routines[name] = Routine{
+				Start: fn(),
+			}
+		}
+	}
+	vm.Threads = []*Thread{
+		{
+			PC: initInst,
+		},
+	}
+	return vm
 }

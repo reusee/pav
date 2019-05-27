@@ -1,4 +1,4 @@
-package parser
+package pav
 
 import (
 	"testing"
@@ -12,7 +12,7 @@ func TestJSONEmptyObject(t *testing.T) {
 		" { }",
 		" \n{ \t}",
 	} {
-		vm := NewJSONParserVM(&Instruction{
+		vm := NewVMFromObject(new(JSONParser), &Instruction{
 			Op:   OpCall,
 			Name: "Object",
 		})
@@ -30,7 +30,7 @@ func TestJSONEmptyArray(t *testing.T) {
 		" [ ]",
 		" \n[ \t]",
 	} {
-		vm := NewJSONParserVM(&Instruction{
+		vm := NewVMFromObject(new(JSONParser), &Instruction{
 			Op:   OpCall,
 			Name: "Array",
 		})
@@ -49,7 +49,7 @@ func TestJSONString(t *testing.T) {
 		`"\n\"\\"`,
 		`"\n\"\\\u1234"`,
 	} {
-		vm := NewJSONParserVM(&Instruction{
+		vm := NewVMFromObject(new(JSONParser), &Instruction{
 			Op:   OpCall,
 			Name: "String",
 		})
@@ -77,7 +77,7 @@ func TestJSONNumber(t *testing.T) {
 		"-999.01E-10",
 		"999.01E-10",
 	} {
-		vm := NewJSONParserVM(&Instruction{
+		vm := NewVMFromObject(new(JSONParser), &Instruction{
 			Op:   OpCall,
 			Name: "Number",
 		})
@@ -95,7 +95,7 @@ func TestJSONValue(t *testing.T) {
 		`false`,
 		`null`,
 	} {
-		vm := NewJSONParserVM(&Instruction{
+		vm := NewVMFromObject(new(JSONParser), &Instruction{
 			Op:   OpCall,
 			Name: "Value",
 		})
@@ -115,7 +115,7 @@ func TestJSONArray(t *testing.T) {
 		`[true]`,
 		`[{}]`,
 	} {
-		vm := NewJSONParserVM(&Instruction{
+		vm := NewVMFromObject(new(JSONParser), &Instruction{
 			Op:   OpCall,
 			Name: "Array",
 		})
@@ -131,7 +131,7 @@ func TestJSONObject(t *testing.T) {
 		`{"foo": "bar", "bar": []}`,
 		`{"foo": "bar", "bar": [], "baz": 42}`,
 	} {
-		vm := NewJSONParserVM(&Instruction{
+		vm := NewVMFromObject(new(JSONParser), &Instruction{
 			Op:   OpCall,
 			Name: "Object",
 		})

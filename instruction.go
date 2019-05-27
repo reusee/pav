@@ -1,4 +1,4 @@
-package parser
+package pav
 
 import (
 	"sync/atomic"
@@ -50,7 +50,7 @@ func AnyRune() *Instruction {
 	}
 }
 
-func Inverse(inst *Instruction) *Instruction {
+func RuneInverse(inst *Instruction) *Instruction {
 	i := *inst
 	i.Inverse = true
 	return &i
@@ -149,5 +149,12 @@ func Named(name string) *Instruction {
 	return &Instruction{
 		Op:   OpCall,
 		Name: name,
+	}
+}
+
+func RuneCategory(category string) *Instruction {
+	return &Instruction{
+		Op:       OpRune,
+		Category: category,
 	}
 }
