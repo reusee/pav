@@ -4,10 +4,14 @@ type GoLexer struct{}
 
 func (_ GoLexer) Program() *Instruction {
 	return ZeroOrMore(
-		Longest(
-			Named("Comment"),
+		Seq(
+			ZeroOrMore(
+				First(
+					Named("Comment"),
+					Named("Blank"),
+				),
+			),
 			Named("Token"),
-			Named("Blank"),
 		),
 	)
 }
@@ -44,7 +48,7 @@ func (_ GoLexer) Identifier() *Instruction {
 	return Seq(
 		Named("Letter"),
 		ZeroOrMore(
-			Longest(
+			First(
 				Named("Letter"),
 				RuneCategory("Nd"),
 			),
@@ -53,38 +57,40 @@ func (_ GoLexer) Identifier() *Instruction {
 }
 
 func (_ GoLexer) Letter() *Instruction {
-	return Longest(
+	return First(
 		RuneCategory("L"),
 		Rune('_'),
 	)
 }
 
 func (_ GoLexer) Keyword() *Instruction {
-	return Longest(
+	return First(
 		Literal("break"),
-		Literal("default"),
-		Literal("func"),
-		Literal("interface"),
-		Literal("select"),
 		Literal("case"),
-		Literal("defer"),
-		Literal("go"),
-		Literal("map"),
-		Literal("struct"),
 		Literal("chan"),
-		Literal("else"),
-		Literal("goto"),
-		Literal("package"),
-		Literal("switch"),
 		Literal("const"),
-		Literal("fallthrough"),
-		Literal("if"),
-		Literal("range"),
-		Literal("type"),
 		Literal("continue"),
+		Literal("default"),
+		Literal("defer"),
+		Literal("else"),
+		Literal("fallthrough"),
 		Literal("for"),
+		Literal("func"),
+		Longest(
+			Literal("go"),
+			Literal("goto"),
+		),
+		Literal("if"),
 		Literal("import"),
+		Literal("interface"),
+		Literal("map"),
+		Literal("package"),
+		Literal("range"),
 		Literal("return"),
+		Literal("select"),
+		Literal("struct"),
+		Literal("switch"),
+		Literal("type"),
 		Literal("var"),
 	)
 }
@@ -228,9 +234,9 @@ func (_ GoLexer) StringLiteral() *Instruction {
 func (_ GoLexer) RawStringLiteral() *Instruction {
 	return Seq(
 		Literal("`"),
-		RunePredict(
-			RuneInverse(Rune('`')),
-			ZeroOrMore(
+		ZeroOrMore(
+			RunePredict(
+				RuneInverse(Rune('`')),
 				First(
 					Named("UnicodeChar"),
 					Rune('\n'),
