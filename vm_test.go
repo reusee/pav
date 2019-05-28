@@ -722,7 +722,7 @@ func TestLeftRecursion(t *testing.T) {
 }
 
 func TestLeftRecursion2(t *testing.T) {
-	//TODO
+	t.Skip() //TODO
 
 	var A *Instruction
 	A = Longest(
