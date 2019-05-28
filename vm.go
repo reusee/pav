@@ -3,6 +3,7 @@ package pav
 import (
 	"fmt"
 	"reflect"
+	"strings"
 	"unicode"
 )
 
@@ -346,4 +347,64 @@ func NewVMFromObject(obj interface{}, initInst *Instruction) *VM {
 		},
 	}
 	return vm
+}
+
+func (i *Instruction) String() string {
+	return fmt.Sprintf(
+		"%s %s",
+		i.Op.String(),
+		func() string {
+			var b strings.Builder
+			switch i.Op {
+
+			case OpRune:
+				if len(i.Runes) > 0 {
+					b.WriteString(fmt.Sprintf("%q", i.Runes))
+				} else if i.RuneRange[0] != i.RuneRange[1] {
+					b.WriteString(fmt.Sprintf("%q - %q", i.RuneRange[0], i.RuneRange[1]))
+				} else if i.Category != "" {
+					b.WriteString(i.Category)
+				} else {
+					b.WriteString(fmt.Sprintf("%q", i.Rune))
+				}
+				if i.Inverse {
+					b.WriteString(" inverse")
+				}
+				if i.Predict {
+					b.WriteString(fmt.Sprintf(" predict %s", i.Pos()))
+				}
+
+			case OpCall:
+				if i.Name != "" {
+					b.WriteString(i.Name)
+				} else if i.Inst != nil {
+					b.WriteString(fmt.Sprintf("%s", i.Pos()))
+				}
+				if i.ClusterID > 0 {
+					b.WriteString(fmt.Sprintf(" %d %s", i.ClusterID, i.ClusterType.String()))
+				}
+
+			case OpJump:
+				b.WriteString(fmt.Sprintf("%s", i.Pos()))
+
+			case OpClone:
+				for i, inst := range i.Insts {
+					if i > 0 {
+						b.WriteString(" ")
+					}
+					b.WriteString(inst.Pos())
+				}
+
+			case OpIndirect:
+				b.WriteString((*i.InstP).Pos())
+
+			}
+			return b.String()
+		}(),
+	)
+}
+
+func (i *Instruction) Pos() string {
+	//TODO show file and line
+	return fmt.Sprintf("%p", i)
 }
